@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Metrorrey Navigator</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-logo">M</div>
+
+            <div>
+                <h1>Metrorrey Navigator</h1>
+                <p>Metro de Monterrey · Planificador de rutas</p>
+            </div>
+        </div>
+
+        <div class="theme-box">
+            <label for="themeSelector">Apariencia</label>
+
+            <select id="themeSelector">
+                <option value="dark">🌙 Oscuro · Rosa y negro</option>
+                <option value="light">☀️ Claro · Blanco y azul</option>
+            </select>
+        </div>
+
+    </header>
+
+    <!-- DASHBOARD -->
+    <main class="dashboard">
+
+        <!-- PANEL LATERAL -->
+        <aside class="sidebar">
+
+            <section class="card">
+                <div class="section-heading">
+                    <span class="eyebrow">PLANIFICADOR</span>
+                    <h2>¿A dónde vamos?</h2>
+                    <p class="muted">
+                        Encuentra tu mejor recorrido por Metrorrey.
+                    </p>
+                </div>
+
+                <form method="POST" class="route-form">
+
+                    <label for="origin">Estación de origen</label>
+                    <div class="station-picker">
+                        <input
+                            id="origin"
+                            name="origin"
+                            placeholder="Selecciona origen"
+                            value="{{ origin or '' }}"
+                            autocomplete="off"
+                            aria-controls="originOptions"
+                            aria-expanded="false"
+                            required
+                        >
+                        <div id="originOptions" class="station-options"
+                             role="listbox" hidden></div>
+                    </div>
+
+                    <button class="swap-button"
+                            type="button"
+                            id="swapStations"
+                            aria-label="Intercambiar estaciones">
+                        ⇅ Intercambiar estaciones
+                    </button>
+
+                    <label for="destination">
+                        Estación de destino
+                    </label>
+
+                    <div class="station-picker">
+                        <input
+                            id="destination"
+                            name="destination"
+                            placeholder="Selecciona destino"
+                            value="{{ destination or '' }}"
+                            autocomplete="off"
+                            aria-controls="destinationOptions"
+                            aria-expanded="false"
+                            required
+                        >
+                        <div id="destinationOptions" class="station-options"
+                             role="listbox" hidden></div>
+                    </div>
+
+                    <button class="search-button" type="submit">
+                        Buscar mejor ruta →
+                    </button>
+
+                </form>
+            </section>
+
+            <!-- RESULTADOS -->
+            <section class="card result-card">
+
+                <span class="eyebrow">TU RECORRIDO</span>
+                <h2>Resultado de la búsqueda</h2>
+
+                {% if error %}
+                    <p class="error-message">{{ error }}</p>
+
+                {% elif path %}
+
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ time }}</span>
+                            <span class="stat-label">Minutos aprox.</span>
+                        </div>
+
+                        <div class="stat">
+                            <span class="stat-value">
+                                {{ transfers }}
+                            </span>
+                            <span class="stat-label">Transbordos</span>
+                        </div>
+
+                        <div class="stat">
+                            <span class="stat-value">
+                                {{ path|length - 1 }}
+                            </span>
+                            <span class="stat-label">Tramos</span>
+                        </div>
+                    </div>
+
+                    <div class="route-list">
+                        {% for stop in path %}
+                        <div class="route-stop">
+                            <span class="stop-dot"></span>
+                            <span>{{ stop }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+
+                    <div class="empty-state">
+                        <div class="empty-icon">🚇</div>
+                        <p>
+                            Selecciona dos estaciones para
+                            consultar tu recorrido.
+                        </p>
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+            <!-- INFORMACIÓN DE LÍNEAS -->
+            <section class="card">
+                <span class="eyebrow">RED METRORREY</span>
+                <h2>Líneas del metro</h2>
+
+                <div class="line-item">
+                    <span class="line-dot line-1"></span>
+                    <span>Línea 1</span>
+                </div>
+
+                <div class="line-item">
+                    <span class="line-dot line-2"></span>
+                    <span>Línea 2</span>
+                </div>
+
+                <div class="line-item">
+                    <span class="line-dot line-3"></span>
+                    <span>Línea 3</span>
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- ZONA PRINCIPAL -->
+        <section class="map-panel">
+
+            <div class="card map-card">
+
+                <div class="map-header">
+                    <div>
+                        <span class="eyebrow">MAPA DE LA RED</span>
+                        <h2>Explora Metrorrey</h2>
+                    </div>
+
+                    <span class="network-badge">
+                        Monterrey, Nuevo León
+                    </span>
+                </div>
+
+                <div class="map-toolbar">
+                    <span>Red de transporte ferroviario</span>
+                </div>
+
+                <div class="map-wrapper" id="mapWrapper">
+                    <div class="map-canvas">
+                        <img
+                            src="{{ url_for('static', filename='mapa_metrorrey.jpeg') }}"
+                            alt="Mapa oficial del Metro de Monterrey"
+                            class="metro-image"
+                        >
+                        <svg id="metroOverlay" class="metro-overlay"
+                             viewBox="0 0 1600 1004"
+                             preserveAspectRatio="none"
+                             aria-label="Ruta resaltada en el mapa"></svg>
+                    </div>
+                </div>
+
+
+
+
+                <div class="map-footer">
+                    <span>● Línea 1</span>
+                    <span>● Línea 2</span>
+                    <span>● Línea 3</span>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script id="stationNames" type="application/json">
+    {{ stations | tojson }}
+</script>
+
+<script id="metroRouteData" type="application/json">
+    {{ {
+        "nodes": route_nodes or [],
+        "lines": route_lines or []
+    } | tojson }}
+</script>
+
+<script src="{{ url_for('static', filename='script.js') }}">
+</script>
+
+</body>
+</html>
